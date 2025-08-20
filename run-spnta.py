@@ -17,7 +17,7 @@ from astropy import units as u
 import numpy as np
 import json
 import utils
-
+import subprocess
 
 setup_log(level="WARNING")
 
@@ -191,5 +191,13 @@ if astrometry_data is not None:
         }
     )
 
-with open(f"{outdir}/{psrname}_priors.json", "w") as f:
+prior_file = f"{outdir}/{psrname}_priors.json"
+with open(prior_file, "w") as f:
     json.dump(prior_dict, f, indent=4)
+
+
+# Run the analysis
+result_dir = f"{outdir}/results/"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -f"
+print(f"Running command :: {pyvela_cmd}")
+subprocess.run(pyvela_cmd.split())
