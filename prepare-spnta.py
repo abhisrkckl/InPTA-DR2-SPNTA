@@ -31,6 +31,7 @@ if not os.path.isdir(outdir):
     os.mkdir(outdir)
 
 model_in, toas = get_model_and_toas(parfile_in, timfile, allow_tcb=True)
+model_in = model_in.as_ICRS()
 parfile_out = f"{outdir}/{psrname}_spnta.par"
 timfile_out = f"{outdir}/{psrname}_all.tim"
 toas.write_TOA_file(timfile_out)  # To merge all tim files into one.
@@ -123,27 +124,72 @@ for ecorrname in model_out.components["EcorrNoise"].ECORRs:
     model_out[ecorrname].frozen = False
 
 # Unfreeze astrometric parameters.
-# These have proper priors.
+# We have already converted to ICRS coordinates if necessary.
 model_out["PX"].frozen = False
-if "AstrometryEquatorial" in model_out.components:
-    model_out["PMRA"].frozen = False
-    model_out["PMDEC"].frozen = False
-else:
-    model_out["PMELAT"].frozen = False
-    model_out["PMELONG"].frozen = False
+model_out["PMRA"].frozen = False
+model_out["PMDEC"].frozen = False
 
 # Write modified par file
 model_out.write_parfile(parfile_out)
 
 # Prepare the prior JSON file.
-with open("priors.json", "r") as f:
-    prior_dict: dict = json.load(f)
 px_dm = utils.get_px_from_dm(model_out)
-prior_dict["PX"] = {
-    "distribution": "Normal",
-    "args": [px_dm, px_dm/2],
-    "lower": 0.0,
-    "source": "pygedm[ymw16]"
+prior_dict = {
+    "PMRA": {
+        "distribution": "PGeneralizedGaussian",
+        "args": [0.3608272992359529, -1.9900000477866313, 0.3313620365404956],
+        "source": "psrcat"
+    },
+    "PMDEC": {
+        "distribution": "PGeneralizedGaussian",
+        "args": [-1.9900000477866313, 0.3313620365404956, 0.3608272992359529],
+        "source": "psrcat"
+    },
+    "PX": {
+        "distribution": "Normal",
+        "args": [px_dm, px_dm/2],
+        "lower": 0.0,
+        "source": "pygedm[ymw16]"
+    }
 }
+
+astrometry_data = utils.get_astrometry_data(psrname)
+if astrometry_data is not None:
+    raj, σraj, decj, σdecj, pmra, σpmra, pmdec, σpmdec, px, σpx, src = astrometry_data
+    prior_dict.update(
+        {
+            "RAJ": {
+                "distribution": "Normal",
+                "args": [raj.value, 100*σraj.value],
+                "lower": 0.0,
+                "upper": 24.0,
+                "source": src,
+            },
+            "DECJ": {
+                "distribution": "Normal",
+                "args": [decj.value, 100*σdecj.value],
+                "lower": -90.0,
+                "upper": 90.0,
+                "source": src,
+            },
+            "PMRA": {
+                "distribution": "Normal",
+                "args": [pmra.value, σpmra.value],
+                "source": src,
+            },
+            "PMDEC": {
+                "distribution": "Normal",
+                "args": [pmdec.value, σpmdec.value],
+                "source": src,
+            },
+            "PX": {
+                "distribution": "Normal",
+                "args": [px.value, σpx.value],
+                "lower": 0.0,
+                "source": src,
+            },
+        }
+    )
+
 with open(f"{outdir}/{psrname}_priors.json", "w") as f:
     json.dump(prior_dict, f, indent=4)

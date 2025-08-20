@@ -2,3 +2,4 @@
 analysis/*/*.json
 analysis/*/*.par
 analysis/*/*.tim
+analysis/*/results/

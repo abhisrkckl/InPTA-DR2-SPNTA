@@ -1,0 +1,4 @@
+# PSR           RAJ             σRAJ    DECJ            σDECJ   PMRA        σPMRA       PMDEC       σPMDEC      PX      σPX     Source
+# -             hh:mm:ss        mas     dd:mm:ss        mas     mas/yr      mas/yr      mas/yr      mas/yr      mas     mas     -
+J0030+0451      00:30:27.42502  0.9     04:51:39.7159   1.2     -6.13       0.07        0.34        0.16        3.02    0.07    VLBI[MPSRπ]
+J0610-2100      06:10:13.60053  3.6     -21:00:27.7923  15.2    9.1         0.1         15.96       0.25        0.73    0.10    VLBI[MPSRπ]
