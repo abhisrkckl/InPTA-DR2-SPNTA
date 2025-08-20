@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import copy
@@ -9,9 +11,15 @@ from pint.models import (
     EcorrNoise,
 )
 from pint.models.parameter import maskParameter
+from pint.logging import setup as setup_log
 from pint.fitter import Fitter
 from astropy import units as u
 import numpy as np
+import json
+import utils
+
+
+setup_log(level="WARNING")
 
 psrname = sys.argv[1]
 datadir = f"InPTA.DR2/{psrname}"
@@ -67,37 +75,30 @@ for efacname in model_out.components["ScaleToaError"].EFACs:
     idx = efac.index
 
     equadname = f"EQUAD{idx}"
+    equad1 = model_out["EQUAD1"]
     if idx == 1:
         equad = model_out[equadname]
-        equad.value = 1e-3
+        equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
         equad = maskParameter(
             name=equadname,
             index=idx,
-            key=efac.key,
-            key_value=efac.key_value,
-            value=1e-3,
-            units=model_out["EQUAD1"].units,
-            description=model_out["EQUAD1"].description,
-            tcb2tdb_scale_factor=1,
+            tcb2tdb_scale_factor=1
         )
+        equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
         model_out.components["ScaleToaError"].add_param(equad)
 
     ecorrname = f"ECORR{idx}"
     if idx == 1:
         ecorr = model_out[ecorrname]
-        ecorr.value = 1e-13
+        ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
         ecorr = maskParameter(
             name=ecorrname,
             index=idx,
-            key=efac.key,
-            key_value=efac.key_value,
-            value=1e-3,
-            units=model_out["ECORR1"].units,
-            description=model_out["ECORR1"].description,
-            tcb2tdb_scale_factor=1,
+            tcb2tdb_scale_factor=1
         )
+        ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
         model_out.components["EcorrNoise"].add_param(ecorr)
 
 # Do a preliminary fit for "cheat" priors. This need not be accurate.
@@ -121,4 +122,28 @@ for equadname in model_out.components["ScaleToaError"].EQUADs:
 for ecorrname in model_out.components["EcorrNoise"].ECORRs:
     model_out[ecorrname].frozen = False
 
+# Unfreeze astrometric parameters.
+# These have proper priors.
+model_out["PX"].frozen = False
+if "AstrometryEquatorial" in model_out.components:
+    model_out["PMRA"].frozen = False
+    model_out["PMDEC"].frozen = False
+else:
+    model_out["PMELAT"].frozen = False
+    model_out["PMELONG"].frozen = False
+
+# Write modified par file
 model_out.write_parfile(parfile_out)
+
+# Prepare the prior JSON file.
+with open("priors.json", "r") as f:
+    prior_dict: dict = json.load(f)
+px_dm = utils.get_px_from_dm(model_out)
+prior_dict["PX"] = {
+    "distribution": "Normal",
+    "args": [px_dm, px_dm/2],
+    "lower": 0.0,
+    "source": "pygedm[ymw16]"
+}
+with open(f"{outdir}/{psrname}_priors.json", "w") as f:
+    json.dump(prior_dict, f, indent=4)
