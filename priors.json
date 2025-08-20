@@ -1,0 +1,13 @@
+{
+    "PMRA": {
+        "distribution": "PGeneralizedGaussian",
+        "args": [0.3608272992359529, -1.9900000477866313, 0.3313620365404956],
+        "source": "psrcat"
+    },
+    "PMDEC": {
+        "distribution": "PGeneralizedGaussian",
+        "args": [-1.9900000477866313, 0.3313620365404956, 0.3608272992359529],
+        "source": "psrcat"
+    }
+    
+}
