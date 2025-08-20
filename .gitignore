@@ -1,0 +1,4 @@
+*.pyc
+analysis/*/*.json
+analysis/*/*.par
+analysis/*/*.tim
