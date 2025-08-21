@@ -201,3 +201,8 @@ result_dir = f"{outdir}/results/"
 pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
+
+plot_file = f"{result_dir}/{psrname}_summary.pdf"
+pyvela_plot_cmd = f"pyvela-plot {result_dir} --priors -o {plot_file}"
+print(f"Running command :: {pyvela_plot_cmd}")
+subprocess.run(pyvela_plot_cmd.split())
