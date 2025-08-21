@@ -55,9 +55,10 @@ model_out["TNREDC"].value = int(
 model_out["TNREDFLOG"].value = 4
 model_out["TNREDFLOG_FACTOR"].value = 2
 
-# Replace DMX by DMGP
+# Replace DMX by DMGP, unfreeze solar wind
 N_DMX = len(model_out.components["DispersionDMX"].get_indices())
 N_DM = 2
+N_SW = 1
 model_out.remove_component("DispersionDMX")
 model_out.add_component(PLDMNoise())
 model_out["DM"].frozen = False
@@ -65,9 +66,10 @@ model_out["DM1"].value = 0
 model_out["DM1"].frozen = False
 model_out["TNDMAMP"].value = -14
 model_out["TNDMGAM"].value = 3.5
-model_out["TNDMC"].value = int(np.ceil((N_DMX - N_DM) / 2))
+model_out["TNDMC"].value = int(np.ceil((N_DMX - N_DM - N_SW) / 2))
 model_out["TNDMFLOG"].value = 4
 model_out["TNDMFLOG_FACTOR"].value = 2
+model_out["NE_SW"].frozen = False
 
 # Add EQUADs and ECORRs
 model_out.add_component(EcorrNoise())
@@ -150,7 +152,12 @@ prior_dict = {
         "args": [px_dm, px_dm/2],
         "lower": 0.0,
         "source": "pygedm[ymw16]"
-    }
+    },
+    "NE_SW": {
+        "distribution": "Uniform",
+        "args": [0, 20],
+        "source": ""
+    },
 }
 
 astrometry_data = utils.get_astrometry_data(psrname)
@@ -198,7 +205,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 20000 -b 3000 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
