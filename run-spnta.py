@@ -153,6 +153,16 @@ prior_dict = {
         "lower": 0.0,
         "source": "pygedm[ymw16]"
     },
+    "DM": {
+        "distribution": "Exponential",
+        "args": [211.755878394261],
+        "source": "psrcat",
+    },
+    "DM1": {
+        "distribution": "PGeneralizedGaussian",
+        "args": [-7.999999834097917e-05, 0.00035334150605127257, 0.41101701685272485],
+        "source": "psrcat",
+    },
     "NE_SW": {
         "distribution": "Uniform",
         "args": [0, 20],
@@ -205,11 +215,11 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 20000 -b 3000 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 20000 -b 3000 -s 0.05 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
 plot_file = f"{result_dir}/{psrname}_summary.pdf"
-pyvela_plot_cmd = f"pyvela-plot {result_dir} --priors -o {plot_file}"
+pyvela_plot_cmd = f"pyvela-plot {result_dir} --priors -o {plot_file} -q 0.999"
 print(f"Running command :: {pyvela_plot_cmd}")
 subprocess.run(pyvela_plot_cmd.split())
