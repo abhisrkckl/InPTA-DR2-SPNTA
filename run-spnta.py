@@ -83,11 +83,7 @@ for efacname in model_out.components["ScaleToaError"].EFACs:
         equad = model_out[equadname]
         equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
-        equad = maskParameter(
-            name=equadname,
-            index=idx,
-            tcb2tdb_scale_factor=1
-        )
+        equad = maskParameter(name=equadname, index=idx, tcb2tdb_scale_factor=1)
         equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
         model_out.components["ScaleToaError"].add_param(equad)
 
@@ -96,11 +92,7 @@ for efacname in model_out.components["ScaleToaError"].EFACs:
         ecorr = model_out[ecorrname]
         ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
-        ecorr = maskParameter(
-            name=ecorrname,
-            index=idx,
-            tcb2tdb_scale_factor=1
-        )
+        ecorr = maskParameter(name=ecorrname, index=idx, tcb2tdb_scale_factor=1)
         ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
         model_out.components["EcorrNoise"].add_param(ecorr)
 
@@ -140,18 +132,18 @@ prior_dict = {
     "PMRA": {
         "distribution": "PGeneralizedGaussian",
         "args": [0.3608272992359529, -1.9900000477866313, 0.3313620365404956],
-        "source": "psrcat"
+        "source": "psrcat",
     },
     "PMDEC": {
         "distribution": "PGeneralizedGaussian",
         "args": [-1.9900000477866313, 0.3313620365404956, 0.3608272992359529],
-        "source": "psrcat"
+        "source": "psrcat",
     },
     "PX": {
         "distribution": "Normal",
-        "args": [px_dm, px_dm/2],
+        "args": [px_dm, px_dm / 2],
         "lower": 0.0,
-        "source": "pygedm[ymw16]"
+        "source": "pygedm[ymw16]",
     },
     "DM": {
         "distribution": "Exponential",
@@ -163,11 +155,7 @@ prior_dict = {
         "args": [-7.999999834097917e-05, 0.00035334150605127257, 0.41101701685272485],
         "source": "psrcat",
     },
-    "NE_SW": {
-        "distribution": "Uniform",
-        "args": [0, 20],
-        "source": ""
-    },
+    "NE_SW": {"distribution": "Uniform", "args": [0, 20], "source": ""},
 }
 
 astrometry_data = utils.get_astrometry_data(psrname)
@@ -177,14 +165,14 @@ if astrometry_data is not None:
         {
             "RAJ": {
                 "distribution": "Normal",
-                "args": [raj.value, 100*σraj.value],
+                "args": [raj.value, 100 * σraj.value],
                 "lower": 0.0,
                 "upper": 24.0,
                 "source": src,
             },
             "DECJ": {
                 "distribution": "Normal",
-                "args": [decj.value, 100*σdecj.value],
+                "args": [decj.value, 100 * σdecj.value],
                 "lower": -90.0,
                 "upper": 90.0,
                 "source": src,
@@ -215,7 +203,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 20000 -b 3000 -s 0.05 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 10 -b 10000 -s 0.05 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
