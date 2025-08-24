@@ -30,7 +30,7 @@ outdir = f"analysis/{psrname}"
 if not os.path.isdir(outdir):
     os.mkdir(outdir)
 
-model_in, toas = get_model_and_toas(parfile_in, timfile, allow_tcb=True)
+model_in, toas = get_model_and_toas(parfile_in, timfile, allow_tcb=True, allow_T2=True)
 model_in = model_in.as_ICRS()
 parfile_out = f"{outdir}/{psrname}_spnta.par"
 timfile_out = f"{outdir}/{psrname}_all.tim"
@@ -44,6 +44,17 @@ Tcad_red = 0.25 * u.year
 # Add phase offset
 model_out.add_component(PhaseOffset())
 model_out["PHOFF"].frozen = False
+
+# Center epochs
+epoch = (toas.get_mjds().max() + toas.get_mjds().min()).value / 2
+model_out.change_pepoch(epoch)
+model_out.change_posepoch(epoch)
+model_out.change_dmepoch(epoch)
+if model_out.is_binary:
+    model_out.change_binary_epoch(epoch)
+
+model_out["F0"].frozen = False
+model_out["F1"].frozen = False
 
 # Add red noise
 model_out.add_component(PLRedNoise())
@@ -70,6 +81,21 @@ model_out["TNDMC"].value = int(np.ceil((N_DMX - N_DM - N_SW) / 2))
 model_out["TNDMFLOG"].value = 4
 model_out["TNDMFLOG_FACTOR"].value = 2
 model_out["NE_SW"].frozen = False
+
+# Binary parameters
+if model_out["BINARY"].value == "ELL1":
+    model_out.components["BinaryELL1"].change_binary_epoch(epoch)
+    model_out["A1"].frozen = False
+    model_out["PB"].frozen = False
+    model_out["TASC"].frozen = False
+    model_out["EPS1"].frozen = False
+    model_out["EPS2"].frozen = False
+    # model_out["M2"].frozen = False
+    # if model_out["M2"].value is None or model_out["M2"].value == 0:
+    #     model_out["M2"].value = 0.01
+    # model_out["SINI"].frozen = False
+    # if model_out["SINI"].value is None or model_out["SINI"].value == 0:
+    #     model_out["SINI"].value = 0.5
 
 # Add EQUADs and ECORRs
 model_out.add_component(EcorrNoise())
@@ -100,10 +126,10 @@ for efacname in model_out.components["ScaleToaError"].EFACs:
 ftr = Fitter.auto(toas, model_out)
 try:
     ftr.fit_toas(maxiter=20)
+    model_out = ftr.model
 except:
     # The downhill fitter sometimes throws spurious errors.
     pass
-model_out = ftr.model
 
 # Unfreeze noise parameters
 model_out["TNREDAMP"].frozen = False
@@ -131,7 +157,7 @@ px_dm = utils.get_px_from_dm(model_out)
 prior_dict = {
     "PMRA": {
         "distribution": "PGeneralizedGaussian",
-        "args": [0.3608272992359529, -1.9900000477866313, 0.3313620365404956],
+        "args": [-1.990000000000912, 0.7854132598463084, 0.42623729359753054],
         "source": "psrcat",
     },
     "PMDEC": {
