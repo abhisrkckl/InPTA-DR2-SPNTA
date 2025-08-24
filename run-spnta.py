@@ -103,24 +103,39 @@ for efacname in model_out.components["ScaleToaError"].EFACs:
     efac: maskParameter = model_out[efacname]
     idx = efac.index
 
-    equadname = f"EQUAD{idx}"
-    equad1 = model_out["EQUAD1"]
     if idx == 1:
-        equad = model_out[equadname]
+        equad = model_out["EQUAD1"]
         equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
-        equad = maskParameter(name=equadname, index=idx, tcb2tdb_scale_factor=1)
-        equad.from_parfile_line(f"EQUAD {efac.key} {efac.key_value[0]} 1e-3 0")
+        equad = maskParameter(
+            name="EQUAD",
+            index=idx,
+            key=efac.key,
+            key_value=efac.key_value,
+            value=1e-3,
+            units=model_out["EQUAD1"].units,
+            frozen=True,
+            tcb2tdb_scale_factor=1,
+        )
         model_out.components["ScaleToaError"].add_param(equad)
 
-    ecorrname = f"ECORR{idx}"
     if idx == 1:
-        ecorr = model_out[ecorrname]
+        ecorr = model_out["ECORR1"]
         ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
     else:
-        ecorr = maskParameter(name=ecorrname, index=idx, tcb2tdb_scale_factor=1)
-        ecorr.from_parfile_line(f"ECORR {efac.key} {efac.key_value[0]} 1e-3 0")
+        ecorr = maskParameter(
+            name="ECORR",
+            index=idx,
+            key=efac.key,
+            key_value=efac.key_value,
+            value=1e-3,
+            units=model_out["ECORR1"].units,
+            frozen=True,
+            tcb2tdb_scale_factor=1,
+        )
         model_out.components["EcorrNoise"].add_param(ecorr)
+model_out.components["ScaleToaError"].setup()
+model_out.components["EcorrNoise"].setup()
 
 # Do a preliminary fit for "cheat" priors. This need not be accurate.
 ftr = Fitter.auto(toas, model_out)
@@ -150,6 +165,7 @@ model_out["PMRA"].frozen = False
 model_out["PMDEC"].frozen = False
 
 # Write modified par file
+print(model_out)
 model_out.write_parfile(parfile_out)
 
 # Prepare the prior JSON file.
