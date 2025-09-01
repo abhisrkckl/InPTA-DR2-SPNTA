@@ -80,7 +80,9 @@ model_out["TNDMGAM"].value = 3.5
 model_out["TNDMC"].value = int(np.ceil((N_DMX - N_DM - N_SW) / 2))
 model_out["TNDMFLOG"].value = 4
 model_out["TNDMFLOG_FACTOR"].value = 2
-model_out["NE_SW"].frozen = False
+if np.any(model_out.sun_angle(toas).to("deg").value < 20):
+    # Fit solar wind only if sun angle comes closer than 20 deg.
+    model_out["NE_SW"].frozen = False
 
 # Binary parameters
 if model_out["BINARY"].value == "ELL1":
@@ -200,43 +202,43 @@ prior_dict = {
     "NE_SW": {"distribution": "Uniform", "args": [0, 20], "source": ""},
 }
 
-astrometry_data = utils.get_astrometry_data(psrname)
-if astrometry_data is not None:
-    raj, σraj, decj, σdecj, pmra, σpmra, pmdec, σpmdec, px, σpx, src = astrometry_data
-    prior_dict.update(
-        {
-            "RAJ": {
-                "distribution": "Normal",
-                "args": [raj.value, 100 * σraj.value],
-                "lower": 0.0,
-                "upper": 24.0,
-                "source": src,
-            },
-            "DECJ": {
-                "distribution": "Normal",
-                "args": [decj.value, 100 * σdecj.value],
-                "lower": -90.0,
-                "upper": 90.0,
-                "source": src,
-            },
-            "PMRA": {
-                "distribution": "Normal",
-                "args": [pmra.value, σpmra.value],
-                "source": src,
-            },
-            "PMDEC": {
-                "distribution": "Normal",
-                "args": [pmdec.value, σpmdec.value],
-                "source": src,
-            },
-            "PX": {
-                "distribution": "Normal",
-                "args": [px.value, σpx.value],
-                "lower": 0.0,
-                "source": src,
-            },
-        }
-    )
+# astrometry_data = utils.get_astrometry_data(psrname)
+# if astrometry_data is not None:
+#     raj, σraj, decj, σdecj, pmra, σpmra, pmdec, σpmdec, px, σpx, src = astrometry_data
+#     prior_dict.update(
+#         {
+#             "RAJ": {
+#                 "distribution": "Normal",
+#                 "args": [raj.value, 100 * σraj.value],
+#                 "lower": 0.0,
+#                 "upper": 24.0,
+#                 "source": src,
+#             },
+#             "DECJ": {
+#                 "distribution": "Normal",
+#                 "args": [decj.value, 100 * σdecj.value],
+#                 "lower": -90.0,
+#                 "upper": 90.0,
+#                 "source": src,
+#             },
+#             "PMRA": {
+#                 "distribution": "Normal",
+#                 "args": [pmra.value, σpmra.value],
+#                 "source": src,
+#             },
+#             "PMDEC": {
+#                 "distribution": "Normal",
+#                 "args": [pmdec.value, σpmdec.value],
+#                 "source": src,
+#             },
+#             "PX": {
+#                 "distribution": "Normal",
+#                 "args": [px.value, σpx.value],
+#                 "lower": 0.0,
+#                 "source": src,
+#             },
+#         }
+#     )
 
 prior_file = f"{outdir}/{psrname}_priors.json"
 with open(prior_file, "w") as f:
@@ -245,7 +247,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 10 -b 10000 -s 0.05 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 100000 -w 15 -b 25000 -s 0.05 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
