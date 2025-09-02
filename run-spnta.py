@@ -174,14 +174,18 @@ model_out.write_parfile(parfile_out)
 px_dm = utils.get_px_from_dm(model_out)
 prior_dict = {
     "PMRA": {
-        "distribution": "PGeneralizedGaussian",
-        "args": [-1.990000000000912, 0.7854132598463084, 0.42623729359753054],
-        "source": "psrcat",
+        # "distribution": "PGeneralizedGaussian",
+        # "args": [-1.990000000000912, 0.7854132598463084, 0.42623729359753054],
+        # "source": "psrcat",
+        "distribution": "Uniform",
+        "args": [-60.0, 60.0],
     },
     "PMDEC": {
-        "distribution": "PGeneralizedGaussian",
-        "args": [-1.9900000477866313, 0.3313620365404956, 0.3608272992359529],
-        "source": "psrcat",
+        # "distribution": "PGeneralizedGaussian",
+        # "args": [-1.9900000477866313, 0.3313620365404956, 0.3608272992359529],
+        # "source": "psrcat",
+        "distribution": "Uniform",
+        "args": [-75.0, 75.0],
     },
     "PX": {
         "distribution": "Normal",
@@ -189,15 +193,17 @@ prior_dict = {
         "lower": 0.0,
         "source": "pygedm[ymw16]",
     },
-    "DM": {
-        "distribution": "Exponential",
-        "args": [211.755878394261],
-        "source": "psrcat",
-    },
+    # "DM": {
+    #     "distribution": "Exponential",
+    #     "args": [211.755878394261],
+    #     "source": "psrcat",
+    # },
     "DM1": {
-        "distribution": "PGeneralizedGaussian",
-        "args": [-7.999999834097917e-05, 0.00035334150605127257, 0.41101701685272485],
-        "source": "psrcat",
+        # "distribution": "PGeneralizedGaussian",
+        # "args": [-7.999999834097917e-05, 0.00035334150605127257, 0.41101701685272485],
+        # "source": "psrcat",
+        "distribution": "Uniform",
+        "args": [-0.035, 0.035],
     },
     "NE_SW": {"distribution": "Uniform", "args": [0, 20], "source": ""},
 }
@@ -247,7 +253,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 100000 -w 15 -b 25000 -s 0.05 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 15 -b 25000 -s 0.05 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
