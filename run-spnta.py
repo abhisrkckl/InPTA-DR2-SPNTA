@@ -85,19 +85,21 @@ if np.any(model_out.sun_angle(toas).to("deg").value < 20):
     model_out["NE_SW"].frozen = False
 
 # Binary parameters
-if model_out["BINARY"].value == "ELL1":
-    model_out.components["BinaryELL1"].change_binary_epoch(epoch)
-    model_out["A1"].frozen = False
-    model_out["PB"].frozen = False
-    model_out["TASC"].frozen = False
-    model_out["EPS1"].frozen = False
-    model_out["EPS2"].frozen = False
-    # model_out["M2"].frozen = False
-    # if model_out["M2"].value is None or model_out["M2"].value == 0:
-    #     model_out["M2"].value = 0.01
-    # model_out["SINI"].frozen = False
-    # if model_out["SINI"].value is None or model_out["SINI"].value == 0:
-    #     model_out["SINI"].value = 0.5
+if model_out.is_binary:
+    model_out.change_binary_epoch(epoch)
+#     model_out["A1"].frozen = False
+#     model_out["PB"].frozen = False
+# if model_out["BINARY"].value == "ELL1":
+#     model_out["TASC"].frozen = False
+#     model_out["EPS1"].frozen = False
+#     model_out["EPS2"].frozen = False
+#     model_out["M2"].frozen = False
+#     if model_out["M2"].value is None or model_out["M2"].value == 0:
+#         model_out["M2"].value = 0.01
+#     model_out["SINI"].frozen = False
+#     if model_out["SINI"].value is None or model_out["SINI"].value == 0:
+#         model_out["SINI"].value = 0.5
+
 
 # Add EQUADs and ECORRs
 model_out.add_component(EcorrNoise())
@@ -206,6 +208,9 @@ prior_dict = {
         "args": [-0.035, 0.035],
     },
     "NE_SW": {"distribution": "Uniform", "args": [0, 20], "source": ""},
+    "EPS1": {"distribution": "Uniform", "args": [-0.01, 0.1], "source": ""},
+    "EPS2": {"distribution": "Uniform", "args": [-0.01, 0.1], "source": ""},
+    "PBDOT": {"distribution": "Uniform", "args": [-3e-10, 3e-10], "source": ""},
 }
 
 # astrometry_data = utils.get_astrometry_data(psrname)
@@ -253,7 +258,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 15 -b 25000 -s 0.05 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 6 -b 25000 -s 0.05 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
