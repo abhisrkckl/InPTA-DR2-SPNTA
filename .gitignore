@@ -4,3 +4,7 @@ analysis/*/*.json
 analysis/*/*.par
 analysis/*/*.tim
 analysis/*/results/
+*.npy
+chain_*.txt
+*_jump.txt
+jumps.txt
