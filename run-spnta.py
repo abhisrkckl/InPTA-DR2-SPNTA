@@ -40,6 +40,7 @@ model_out = copy.deepcopy(model_in)
 
 Tspan = toas.get_Tspan()
 Tcad_red = 0.25 * u.year
+Tcad_dm = 14 * u.day
 
 # Add phase offset
 model_out.add_component(PhaseOffset())
@@ -77,7 +78,10 @@ model_out["DM1"].value = 0
 model_out["DM1"].frozen = False
 model_out["TNDMAMP"].value = -14
 model_out["TNDMGAM"].value = 3.5
-model_out["TNDMC"].value = int(np.ceil((N_DMX - N_DM - N_SW) / 2))
+model_out["TNDMC"].value = int(np.ceil(
+    max((N_DMX - N_DM - N_SW) / 2, 
+    (Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
+))
 model_out["TNDMFLOG"].value = 4
 model_out["TNDMFLOG_FACTOR"].value = 2
 if np.any(model_out.sun_angle(toas).to("deg").value < 20):
@@ -258,7 +262,7 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 6 -b 25000 -s 0.05 -f"
+pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 10 -b 25000 -s 0.3 -f"
 print(f"Running command :: {pyvela_cmd}")
 subprocess.run(pyvela_cmd.split())
 
