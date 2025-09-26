@@ -1,6 +1,6 @@
 # SOP for SPNTA using Vela
 
-## Preliminary sanity checks for data
+## Preliminary checks for the data
 
 1. Check if PINT can read the par and tim files.
     
@@ -16,7 +16,7 @@
 
    If you find any issue at this step please let me know, it may be a PINT compatibility issue.
 
-2. Look at the DM time series by clicking on the "model DM" radio button. Plot this against both "mjd" and "elongation". This will allow you to see the DM time series and decide if solar wind is important.
+2. Look at the DM time series by clicking on the "model DM" radio button. Plot this against both "mjd" and "elongation". This will allow you to see the DM time series and decide if solar wind is important. (see the section below)
     
     ![pintk-2](pintk-2.png)
 
@@ -26,10 +26,18 @@ In this case there seems to be a solar wind effect, so it should be included in 
 
 3. Make sure that you have the read and write permissions for all relevant files and folders.
 
-## Deciding the DM/solar wind model
+### Deciding the DM/solar wind model
 
 The default DM/SW model is DM + DM1 + DMGP. Decide whether to include solar wind based on the plots as mentioned above. If you see multiple solar wind peaks with varying heights, you should use a Taylor series of NE_SW with multiple terms (SWGP is not yet implemented, I am working on it!).
+
+DO NOT PROCEED WITHOUT LOOKING AT THE DM PLOTS!!!
 
 The following is an example where a solar wind Taylor series is required.
 
 ![pintk-4](pintk-4.png)
+
+### Look out for outliers
+
+While plotting the TOAs look for outlier TOAs, whether single TOAs or a whole epoch. You don't need to remove them necessarily, but be aware that such epochs can throw off the white noise estimates if the number of epochs is small. Note down any weird-looking epoch so that you can come back to it after the analysis. If you find anything, ask the outlier working group for clarification.
+
+
