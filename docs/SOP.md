@@ -1,8 +1,23 @@
 # SOP for SPNTA using Vela
 
+## Installation
+
+(I assume that Vela.jl is already installed in your machine, maybe in a singularity container.)
+
+## What's there in the repository?
+
+This repository contains the scripts for running Vela.jl specialized for InPTA DR2. The InPTA.DR2 directory contains a copy of the DR2 as a submodule; it contains the par and tim files as well as the DMcalc DM time series txt files. The scripts know how to look inside this directory to find the data files used for data analysis and plotting.
+
+There are two scripts in this directory
+
+1. `run-spnta.py` is the script for running the analysis. 
+2. `plotdm.py` makes a plot that compares the DM realization from the Vela analysis against the DMcalc estimates.
+
+The usage of these scripts is described in a separate section.
+
 ## Preliminary checks for the data
 
-1. Check if PINT can read the par and tim files.
+1. Check if PINT can read the par and tim files. (Enter the appropriate directory inside InPTA.DR2/ before doing this.)
     
     `$ pintk J0030+0451.DMX.par J0030+0451_all.tim`
 
@@ -38,6 +53,20 @@ The following is an example where a solar wind Taylor series is required.
 
 ### Look out for outliers
 
-While plotting the TOAs look for outlier TOAs, whether single TOAs or a whole epoch. You don't need to remove them necessarily, but be aware that such epochs can throw off the white noise estimates if the number of epochs is small. Note down any weird-looking epoch so that you can come back to it after the analysis. If you find anything, ask the outlier working group for clarification.
+While plotting the TOAs look for outlier TOAs, whether single TOAs or a whole epoch. You don't need to remove them necessarily, but be aware that such epochs can throw off the white noise estimates if the number of epochs is small. Note down any weird-looking epoch so that you can come back to it after the analysis. (If you find anything, maybe ask the outlier working group for clarification.)
 
+## Running the analysis
 
+### What parameters do we fit for?
+
+### Understanding the priors
+
+### Running the script
+
+### Checking the results
+
+### Plotting
+
+### Comparing against SPNA results
+
+### Things to watch out for
