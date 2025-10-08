@@ -39,7 +39,7 @@ toas.write_TOA_file(timfile_out)  # To merge all tim files into one.
 model_out = copy.deepcopy(model_in)
 
 Tspan = toas.get_Tspan()
-Tcad_red = 0.25 * u.year
+Tcad_red = u.year / 12
 Tcad_dm = 14 * u.day
 
 # Add phase offset
@@ -78,10 +78,13 @@ model_out["DM1"].value = 0
 model_out["DM1"].frozen = False
 model_out["TNDMAMP"].value = -14
 model_out["TNDMGAM"].value = 3.5
-model_out["TNDMC"].value = int(np.ceil(
-    max((N_DMX - N_DM - N_SW) / 2, 
-    (Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
-))
+model_out["TNDMC"].value = int(
+    np.ceil((Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
+)
+# model_out["TNDMC"].value = int(np.ceil(
+#     max((N_DMX - N_DM - N_SW) / 2, 
+#     (Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
+# ))
 model_out["TNDMFLOG"].value = 4
 model_out["TNDMFLOG_FACTOR"].value = 2
 if np.any(model_out.sun_angle(toas).to("deg").value < 20):
