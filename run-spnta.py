@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 
-import sys
-import os
 import copy
+import json
+import os
+import sys
+
+import numpy as np
+from astropy import units as u
+from pint.fitter import Fitter
+from pint.logging import setup as setup_log
 from pint.models import (
-    get_model_and_toas,
-    PhaseOffset,
-    PLRedNoise,
-    PLDMNoise,
     EcorrNoise,
+    PhaseOffset,
+    PLDMNoise,
+    PLRedNoise,
+    get_model_and_toas,
 )
 from pint.models.parameter import maskParameter
-from pint.logging import setup as setup_log
-from pint.fitter import Fitter
-from astropy import units as u
-import numpy as np
-import json
+from pyvela import pyvela_plot_script, pyvela_script
+
 import utils
-import subprocess
 
 setup_log(level="WARNING")
 
@@ -82,7 +84,7 @@ model_out["TNDMC"].value = int(
     np.ceil((Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
 )
 # model_out["TNDMC"].value = int(np.ceil(
-#     max((N_DMX - N_DM - N_SW) / 2, 
+#     max((N_DMX - N_DM - N_SW) / 2,
 #     (Tspan / Tcad_dm / 2).to_value(u.dimensionless_unscaled))
 # ))
 model_out["TNDMFLOG"].value = 4
@@ -265,11 +267,11 @@ with open(prior_file, "w") as f:
 
 # Run the analysis
 result_dir = f"{outdir}/results/"
-pyvela_cmd = f"pyvela {parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 10 -b 25000 -s 0.3 -f"
-print(f"Running command :: {pyvela_cmd}")
-subprocess.run(pyvela_cmd.split())
+pyvela_cmd_args = f"{parfile_out} {timfile_out} -P {prior_file} -o {result_dir} -A all -C 100 -N 50000 -w 10 -b 25000 -s 0.3 -f"
+print(f"Running command :: pyvela {pyvela_cmd_args}")
+pyvela_script.main(pyvela_cmd_args.split())
 
 plot_file = f"{result_dir}/{psrname}_summary.pdf"
-pyvela_plot_cmd = f"pyvela-plot {result_dir} --priors -o {plot_file} -q 0.999"
-print(f"Running command :: {pyvela_plot_cmd}")
-subprocess.run(pyvela_plot_cmd.split())
+pyvela_plot_cmd_args = f"{result_dir} --priors -o {plot_file} -q 0.999"
+print(f"Running command :: pyvela-plot {pyvela_plot_cmd_args}")
+pyvela_plot_script.main(pyvela_plot_cmd_args.split())
